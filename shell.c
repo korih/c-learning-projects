@@ -5,6 +5,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+/*
+ * Built in shell commands
+ */
 int lsh_cd(char **args);
 int lsh_help(char **args);
 int lsh_exit(char **args);
@@ -40,6 +43,69 @@ int lsh_help(char **args) {
 }
 
 int lsh_exit(char **args) { return 0; }
+
+/*
+ * Pipping and redirection
+ */
+int lsh_pipe(char **left, char **right);
+
+char *builtin_helpers[] = {"|", ">", "<"};
+
+int (*helper_func[])(char **, char **) = {&lsh_pipe};
+
+int lsh_num_helpers() { return sizeof(builtin_helpers) / sizeof(char *); }
+
+/*
+ * Pipping
+ */
+int lsh_pipe(char **left, char **right) {
+  // Implement piping logic here
+  // fork process, take the stdout from parent
+  // and pass it into the child process which will exec
+  // the command after the | symbol
+  int pipefd[2];
+  pid_t p1, p2;
+
+  if (pipe(pipefd) == -1) {
+    perror("lsh");
+    return 1;
+  }
+
+  // Execute first command
+  p1 = fork();
+  if (p1 == 0) {
+    dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe
+    close(pipefd[0]);
+    close(pipefd[1]);
+
+    if (execvp(left[0], left) == -1) {
+      perror("lsh");
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  // Execute second command
+  p2 = fork();
+  if (p2 == 0) {
+    dup2(pipefd[0], STDIN_FILENO); // Redirect stdin to pipe
+    close(pipefd[0]);
+    close(pipefd[1]);
+
+    if (execvp(right[0], right) == -1) {
+      perror("lsh");
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  // Close Parent
+  close(pipefd[0]);
+  close(pipefd[1]);
+
+  waitpid(p1, NULL, 0); // Wait for first child
+  waitpid(p2, NULL, 0); // Wait for second child
+
+  return 1;
+}
 
 /*
  * Reads the line from the stream
@@ -158,6 +224,13 @@ int lsh_execute(char **args) {
   if (args[0] == NULL) {
     // An empty command was entered
     return 1;
+  }
+
+  for (int i = 0; args[i] != NULL; i++) {
+    if (strcmp(args[i], "|") == 0) {
+      args[i] = NULL;
+      return lsh_pipe(args, &args[i + 1]);
+    }
   }
 
   for (i = 0; i < lsh_num_builtins(); i++) {
