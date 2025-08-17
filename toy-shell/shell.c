@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 /*
- * Built in shell commands
+ * Custom in shell commands
  */
 int lsh_cd(char **args);
 int lsh_help(char **args);
