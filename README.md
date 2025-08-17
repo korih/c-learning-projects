@@ -1,5 +1,8 @@
-# Shell
+# C Learning Projects
 
-Very basic shell. Can use help to see build in commands but it can use all of the library commands in `bin/bash`
+This repository contains various C programming projects that demonstrate different concepts and techniques in the C language. Each project is designed to help you understand and apply C programming skills in practical scenarios.
 
-There is also support for pipeing but no redirection for now
+## Projects
+- shell: just a simple shell implementation.
+- http-server: a basic HTTP server that can handle GET requests and client for sending http requests
+- jit: a simple JIT compiler that can compile and execute C code at runtime.
