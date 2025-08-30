@@ -1,11 +1,12 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -g -Iinclude
+SRC = src/main.c src/shell.c src/buildins.c src/parser.c
 TARGET = toy-shell
 
 all: $(TARGET)
 
-$(TARGET): shell.c
-	$(CC) $(CFLAGS) -o $(TARGET) shell.c
+$(TARGET): $(SRC)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
 
 clean:
 	rm -f $(TARGET)
